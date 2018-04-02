@@ -15,6 +15,8 @@
 #include "auxfunctions.h"
 #include "ccd.h"
 
+#include <set>
+
 using namespace Eigen;
 using namespace std;
 
@@ -41,6 +43,8 @@ public:
 	VectorXd tetVolumes;        //|T|x1 tetrahedra volumes
 	int globalOffset;           //the global index offset of the of opositions/velocities/impulses from the beginning of the global coordinates array in the containing scene class
 	double GRAVITY = 9.81f;
+
+	std::map<int, std::set<int>> NeigbouringIndices;
 
 	typedef Eigen::Triplet<double> DoubleTriplet;
 	VectorXi boundTets;  //just the boundary tets, for collision
@@ -447,6 +451,49 @@ public:
 		COM.array() /= tetVolumes.sum();
 		for (int i = 0; i<origPositions.size() / 3; i++)
 			invMasses(i) = 1.0 / (voronoiVolumes(i)*density);
+
+
+		//
+        //We calculate the neighbours of vertices here
+        //
+        //
+
+        //cout << "Size of origPositions: " << (origPositions.size() / 3) << endl;
+        for(int i = 0; i < (origPositions.size() / 3); i++) {
+            std::pair<int, std::set<int>> temp(i, std::set<int>());
+            NeigbouringIndices.insert(temp);
+        }
+
+        for(int t = 0; t < T.rows(); t++){
+
+            for(int i = 0; i < 4; i++){
+                auto ret = NeigbouringIndices.find(T(t, i));
+                if(ret == NeigbouringIndices.end())
+                    cout << "Couldn't find the index in NeighbouringIndices: " << T(t,i) << endl;
+
+                for(int j = 0; j < 4; j++) {
+                    if( i == j )
+                        continue;
+                    ((*(ret)).second).insert(T(t, j));
+                }
+
+            }
+
+        }
+//
+//        for(int t = 0; t < T.rows(); t++){
+//
+//            for(int i = 0; i < 4; i++) {
+//                auto ret = NeigbouringIndices.find(T(t, i));
+//                if(ret == NeigbouringIndices.end())
+//                    cout << "Couldn't find the index in NeighbouringIndices: " << T(t,i) << endl;
+//
+//                cout << "Neighbours of " << T(t, i) << ": " << endl;
+//                for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter ){
+//                    cout << *iter << endl;
+//                }
+//            }
+//        }
 
 		return COM;
 
