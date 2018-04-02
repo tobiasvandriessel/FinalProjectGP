@@ -508,7 +508,7 @@ public:
 		/***************************
 		TODO
 		***************************/
-		VectorXd bt, Fext(origPositions.size());
+		VectorXd bt, Fext(origPositions.size()), Fin(origPositions.size());
 
 		for (int i = 0; i < Fext.size() / 3; i++) {
 			Fext(i * 3) = 0;
@@ -516,11 +516,44 @@ public:
 			Fext(i * 3 + 2) = 0;
 		}
 
+		double Ks = 0.1;
+		for(int i = 0; i < Fin.size() / 3; i++){
+		    auto ret = NeigbouringIndices.find(i);
+            if(ret == NeigbouringIndices.end())
+                cout << "Couldn't find the index in NeighbouringIndices: " << i << endl;
 
-		bt = M * currVelocities - timeStep * (K*(currPositions - origPositions) - Fext);
+            RowVector3d Xi, Li;
+            Xi << currPositions.segment(3 * i, 3);
+            Li << origPositions.segment(3 * i, 3);
 
-		currVelocities = ASolver->solve(bt);
+            RowVector3d result(0, 0, 0);
 
+//            cout << "Xi: " << Xi << endl;
+
+            for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter){
+		        int j = *iter;
+
+		        RowVector3d Xj, Lj;
+                Xj << currPositions.segment(3 * j, 3);
+//                cout << "Xj: " << Xj << endl;
+                Li = origPositions.segment(3 * j, 3);
+
+                double Xij = (Xj - Xi).norm(), Lij = (Lj - Li).norm();
+
+                result += Ks * (Xij - Lij) * ((Xj - Xi) / Xij);
+		    }
+
+		    Fin(i * 3) = result(0);
+            Fin(i * 3 + 1) = result(1);
+            Fin(i * 3 + 2) = result(2);
+        }
+
+
+//		bt = M * currVelocities - timeStep * (K*(currPositions - origPositions) - Fext);
+//
+//		currVelocities = ASolver->solve(bt);
+
+        currVelocities += timeStep * invMasses * (Fext + Fin).transpose();
 	}
 
 	//Update the current position with the integrated velocity
