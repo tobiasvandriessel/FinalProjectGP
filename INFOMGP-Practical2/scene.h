@@ -516,7 +516,12 @@ public:
 			Fext(i * 3 + 2) = 0;
 		}
 
-		double Ks = 0.1, Kd = 0.1;;
+		double mu = youngModulus / (2.0 * (1 + poissonRatio));
+		double lambda = (poissonRatio * youngModulus) / ((1 + poissonRatio) * (1 - 2*poissonRatio));
+		double k = 4 * sqrt(3) * mu / 3;
+		//double k = lambda + (2.0/3.0) * mu;
+
+		double Ks = k, Kd = Ks / 400 ;
 		for(int i = 0; i < Fin.size() / 3; i++){
 		    auto ret = NeigbouringIndices.find(i);
             if(ret == NeigbouringIndices.end())
@@ -557,39 +562,39 @@ public:
         }
 
 
-//		double Kd = 0.1;
-//		for(int i = 0; i < Fin.size() / 3; i++){
-//			auto ret = NeigbouringIndices.find(i);
-//			if(ret == NeigbouringIndices.end())
-//				cout << "Couldn't find the index in NeighbouringIndices: " << i << endl;
-//
-//			RowVector3d Xi, Vi;
-//			Xi << currPositions.segment(3 * i, 3).transpose();
-//			Vi << currVelocities.segment(3 * i, 3).transpose();
-//
-//			RowVector3d result(0, 0, 0);
-//
-////            cout << "Xi: " << Xi << endl;
-//
-//			for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter){
-//				int j = *iter;
-//
-//				RowVector3d Xj, Vj;
-//				Xj << currPositions.segment(3 * j, 3).transpose();
-//				//cout << "Xj: " << Xj << endl;
-//				Vj = currVelocities.segment(3 * j, 3).transpose();
-//
-//				RowVector3d Xij = Xj - Xi, Vij = Vj - Vi;
-//
-//				result += Kd * (Vij * Xij.transpose()) / (Xij * Xij.transpose()) * Xij;
-//			}
-//
-//			Fin(i * 3) += result(0);
-//			Fin(i * 3 + 1) += result(1);
-//			Fin(i * 3 + 2) += result(2);
-//
-////            cout << "result: " << result << endl;
-//		}
+		/*double Kd = 0.1;
+		for(int i = 0; i < Fin.size() / 3; i++){
+			auto ret = NeigbouringIndices.find(i);
+			if(ret == NeigbouringIndices.end())
+				cout << "Couldn't find the index in NeighbouringIndices: " << i << endl;
+
+			RowVector3d Xi, Vi;
+			Xi << currPositions.segment(3 * i, 3).transpose();
+			Vi << currVelocities.segment(3 * i, 3).transpose();
+
+			RowVector3d result(0, 0, 0);
+
+//            cout << "Xi: " << Xi << endl;
+
+			for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter){
+				int j = *iter;
+
+				RowVector3d Xj, Vj;
+				Xj << currPositions.segment(3 * j, 3).transpose();
+				//cout << "Xj: " << Xj << endl;
+				Vj = currVelocities.segment(3 * j, 3).transpose();
+
+				RowVector3d Xij = Xj - Xi, Vij = Vj - Vi;
+
+				result += Kd * (Vij * Xij.transpose()) / (Xij * Xij.transpose()) * Xij;
+			}
+
+			Fin(i * 3) += result(0);
+			Fin(i * 3 + 1) += result(1);
+			Fin(i * 3 + 2) += result(2);
+
+//            cout << "result: " << result << endl;
+		}*/
 
 
 //		bt = M * currVelocities - timeStep * (K*(currPositions - origPositions) - Fext);
