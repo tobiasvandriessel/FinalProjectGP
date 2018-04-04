@@ -32,6 +32,8 @@ public:
 	VectorXd origPositions;     //3|V|x1 original vertex positions in xyzxyz format - never change this!
 	VectorXd currPositions;     //3|V|x1 current vertex positions in xyzxyz format
 
+    VectorXd prevPositions;     //3|V|x1 previous timeStep's vertex positions in xyzxyz format
+
 								//kinematics
 	bool isFixed;               //is the object immobile (infinite mass)
 	VectorXd currImpulses;      //3|V|x1 correction impulses per coordinate

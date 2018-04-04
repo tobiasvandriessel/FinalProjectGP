@@ -115,6 +115,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
     if(key == 'R') {
         for (int i = 0; i < scene.meshes.size(); i++) {
             scene.meshes[i].currPositions = scene.meshes[i].origPositions;
+            scene.meshes[i].prevPositions = scene.meshes[i].origPositions;
             scene.meshes[i].currVelocities =  VectorXd::Zero(scene.meshes[i].origPositions.rows());
             scene.meshes[i].currImpulses =  VectorXd::Zero(scene.meshes[i].origPositions.rows());
         }
