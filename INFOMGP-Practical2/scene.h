@@ -500,7 +500,7 @@ public:
 	}
 
 	//performing the integration step of the soft body.
-	void integrateVelocity(double timeStep) {
+	void integrateVelocity(double timeStep, float Ks, float Kd) {
 
 		if (isFixed)
 			return;
@@ -521,7 +521,7 @@ public:
 		double k = 4 * sqrt(3) * mu / 3;
 		//double k = lambda + (2.0/3.0) * mu;
 
-		double Ks = k, Kd = Ks / 400 ;
+		double oldKs = 175000, oldKd = 2000;
 		for(int i = 0; i < Fin.size() / 3; i++){
 		    auto ret = NeigbouringIndices.find(i);
             if(ret == NeigbouringIndices.end())
@@ -550,7 +550,7 @@ public:
 
 
                 result += Ks * (magnXij - magnLij) * ((Xj - Xi) / magnXij);
-				result += Kd * (Vij * Xij.transpose()) / (Xij * Xij.transpose()) * Xij;
+				result += Kd * (Vij.dot(Xij.transpose())) / (Xij.dot(Xij.transpose())) * Xij;
 
 			}
 
@@ -614,8 +614,8 @@ public:
 	}
 
 	//the full integration for the time step (velocity + position)
-	void integrate(double timeStep) {
-		integrateVelocity(timeStep);
+	void integrate(double timeStep, float Ks, float Kd) {
+		integrateVelocity(timeStep, Ks, Kd);
 		integratePosition(timeStep);
 	}
 
@@ -795,13 +795,13 @@ public:
 	3. Resolving constraints iteratively by updating velocities until the system is valid (or maxIterations has passed)
 	*********************************************************************/
 
-	void updateScene(double timeStep, double CRCoeff, const double tolerance, const int maxIterations, MatrixXd& viewerV) {
+	void updateScene(double timeStep, double CRCoeff, const double tolerance, const int maxIterations, MatrixXd& viewerV, float Ks, float Kd) {
 
 		/*******************1. Integrating velocity and position from external and internal forces************************************/
 
 		for (int i = 0; i < meshes.size(); i++)
 		{
-			meshes[i].integrate(timeStep);
+			meshes[i].integrate(timeStep, Ks, Kd);
 		}
 
 		mesh2global();

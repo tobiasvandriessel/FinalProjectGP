@@ -31,6 +31,8 @@ int currVertex=-1;
 
 int distanceVersion = 0; //0 = DISTANCE, 1 = EXTENSION, 2 = COMPRESSION
 
+float Ks = 175000, Kd = 2000;
+
 Scene scene;
 
 
@@ -97,7 +99,7 @@ bool key_down(igl::opengl::glfw::Viewer &viewer, unsigned char key, int modifier
   if (key == 'S')
   {
     if (!viewer.core.is_animating){
-      scene.updateScene(timeStep, CRCoeff, tolerance, maxIterations,V);
+      scene.updateScene(timeStep, CRCoeff, tolerance, maxIterations,V, Ks, Kd);
       currTime+=timeStep;
       update_mesh(viewer);
       std::cout <<"currTime: "<<currTime<<std::endl;
@@ -127,7 +129,7 @@ bool pre_draw(igl::opengl::glfw::Viewer &viewer)
   using namespace std;
   
   if (viewer.core.is_animating){
-    scene.updateScene(timeStep, CRCoeff, tolerance, maxIterations, V);
+    scene.updateScene(timeStep, CRCoeff, tolerance, maxIterations, V, Ks, Kd);
     update_mesh(viewer);
     currTime+=timeStep;
     //cout <<"currTime: "<<currTime<<endl;
@@ -158,6 +160,9 @@ class CustomMenu : public igl::opengl::glfw::imgui::ImGuiMenu
 
       vector<std::string> options = {"Distance", "Min", "Max"};
       ImGui::Combo("Distance Version", &distanceVersion, options);
+
+    ImGui::InputFloat("Stiffness Constant", &Ks);
+    ImGui::InputFloat("Dampening Constant", &Kd);
   }
 };
 
