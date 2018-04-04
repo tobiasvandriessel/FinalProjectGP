@@ -502,7 +502,7 @@ public:
 	}
 
 	//performing the integration step of the soft body.
-	void integrateVelocity(double timeStep, float Ks, float Kd) {
+	void integrateVelocity(double timeStep) {
 
 		if (isFixed)
 			return;
@@ -510,58 +510,7 @@ public:
 		/***************************
 		TODO
 		***************************/
-		VectorXd bt, Fext(origPositions.size()), Fin(origPositions.size());
 
-		for (int i = 0; i < Fext.size() / 3; i++) {
-			Fext(i * 3) = 0;
-			Fext(i * 3 + 1) = -GRAVITY;
-			Fext(i * 3 + 2) = 0;
-		}
-
-		double mu = youngModulus / (2.0 * (1 + poissonRatio));
-		double lambda = (poissonRatio * youngModulus) / ((1 + poissonRatio) * (1 - 2*poissonRatio));
-		double k = 4 * sqrt(3) * mu / 3;
-		//double k = lambda + (2.0/3.0) * mu;
-
-		double oldKs = 175000, oldKd = 2000;
-		for(int i = 0; i < Fin.size() / 3; i++){
-		    auto ret = NeigbouringIndices.find(i);
-            if(ret == NeigbouringIndices.end())
-                cout << "Couldn't find the index in NeighbouringIndices: " << i << endl;
-
-            RowVector3d Xi, Li, Vi;
-            Xi << currPositions.segment(3 * i, 3).transpose();
-            Li << origPositions.segment(3 * i, 3).transpose();
-			Vi << currVelocities.segment(3 * i, 3).transpose();
-
-            RowVector3d result(0, 0, 0);
-
-//            cout << "Xi: " << Xi << endl;
-
-            for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter){
-		        int j = *iter;
-
-		        RowVector3d Xj, Lj, Vj;
-                Xj << currPositions.segment(3 * j, 3).transpose();
-                //cout << "Xj: " << Xj << endl;
-                Lj = origPositions.segment(3 * j, 3).transpose();
-				Vj = currVelocities.segment(3 * j, 3).transpose();
-
-				double magnXij = (Xj - Xi).norm(), magnLij = (Lj - Li).norm();
-				RowVector3d Xij = Xj - Xi, Vij = Vj - Vi;
-
-
-                result += Ks * (magnXij - magnLij) * ((Xj - Xi) / magnXij);
-				result += Kd * (Vij.dot(Xij.transpose())) / (Xij.dot(Xij.transpose())) * Xij;
-
-			}
-
-		    Fin(i * 3) = result(0);
-            Fin(i * 3 + 1) = result(1);
-            Fin(i * 3 + 2) = result(2);
-
-//            cout << "result: " << result << endl;
-        }
 
 
 		/*double Kd = 0.1;
@@ -603,22 +552,87 @@ public:
 //
 //		currVelocities = ASolver->solve(bt);
 
-        currVelocities += timeStep * (Fext + (invMasses * Fin.transpose()).transpose());
+
+        //a = (Fext + (invMasses * Fin.transpose()).transpose());
+
+//        currVelocities += timeStep * (Fext + (invMasses * Fin.transpose()).transpose());
+
+        currVelocities = (currPositions - prevPositions) / timeStep;
 	}
 
 	//Update the current position with the integrated velocity
-	void integratePosition(double timeStep) {
+	void integratePosition(double timeStep, float Ks, float Kd) {
 		if (isFixed)
 			return;  //a fixed object is immobile
 
-		currPositions += currVelocities * timeStep;
+
+        VectorXd bt, Fext(origPositions.size()), Fin(origPositions.size());
+
+        for (int i = 0; i < Fext.size() / 3; i++) {
+            Fext(i * 3) = 0;
+            Fext(i * 3 + 1) = -GRAVITY;
+            Fext(i * 3 + 2) = 0;
+        }
+
+        double mu = youngModulus / (2.0 * (1 + poissonRatio));
+        double lambda = (poissonRatio * youngModulus) / ((1 + poissonRatio) * (1 - 2*poissonRatio));
+        double k = 4 * sqrt(3) * mu / 3;
+        //double k = lambda + (2.0/3.0) * mu;
+
+        double oldKs = 175000, oldKd = 2000;
+        for(int i = 0; i < Fin.size() / 3; i++){
+            auto ret = NeigbouringIndices.find(i);
+            if(ret == NeigbouringIndices.end())
+                cout << "Couldn't find the index in NeighbouringIndices: " << i << endl;
+
+            RowVector3d Xi, Li, Vi;
+            Xi << currPositions.segment(3 * i, 3).transpose();
+            Li << origPositions.segment(3 * i, 3).transpose();
+            Vi << currVelocities.segment(3 * i, 3).transpose();
+
+            RowVector3d result(0, 0, 0);
+
+//            cout << "Xi: " << Xi << endl;
+
+            for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter){
+                int j = *iter;
+
+                RowVector3d Xj, Lj, Vj;
+                Xj << currPositions.segment(3 * j, 3).transpose();
+                //cout << "Xj: " << Xj << endl;
+                Lj = origPositions.segment(3 * j, 3).transpose();
+                Vj = currVelocities.segment(3 * j, 3).transpose();
+
+                double magnXij = (Xj - Xi).norm(), magnLij = (Lj - Li).norm();
+                RowVector3d Xij = Xj - Xi, Vij = Vj - Vi;
+
+
+                result += Ks * (magnXij - magnLij) * ((Xj - Xi) / magnXij);
+                result += Kd * (Vij.dot(Xij.transpose())) / (Xij.dot(Xij.transpose())) * Xij;
+
+            }
+
+            Fin(i * 3) = result(0);
+            Fin(i * 3 + 1) = result(1);
+            Fin(i * 3 + 2) = result(2);
+
+//            cout << "result: " << result << endl;
+        }
+
+
+
+        VectorXd temp = currPositions;
+        currPositions = 2 * currPositions - prevPositions + (0.5 * (Fext + (invMasses * Fin.transpose()).transpose()) * timeStep * timeStep);
+        prevPositions = temp;
+
+//		currPositions += currVelocities * timeStep;
 		//cout<<"currPositions: "<<currPositions<<endl;
 	}
 
 	//the full integration for the time step (velocity + position)
 	void integrate(double timeStep, float Ks, float Kd) {
-		integrateVelocity(timeStep, Ks, Kd);
-		integratePosition(timeStep);
+        integratePosition(timeStep, Ks, Kd);
+        integrateVelocity(timeStep);
 	}
 
 
@@ -645,6 +659,7 @@ public:
 			origPositions.segment(i, 3) << (QRot(origPositions.segment(i, 3).transpose(), userOrientation) + userCOM).transpose();
 
 		currPositions = origPositions;
+		prevPositions = origPositions;
 
 		if (isFixed)
 			invMasses.setZero();
