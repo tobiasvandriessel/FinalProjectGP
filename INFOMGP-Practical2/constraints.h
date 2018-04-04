@@ -36,6 +36,16 @@ public:
 		switch (constraintType) {
 
             case VOLUME: {
+                RowVector3d v0(currVars(0), currVars(1), currVars(2));
+                RowVector3d v1(currVars(3), currVars(4), currVars(5));
+                RowVector3d v2(currVars(6), currVars(7), currVars(8));
+                RowVector3d v3(currVars(9), currVars(10), currVars(11));
+
+                RowVector3d e01 = v1 - v0;
+			    RowVector3d e02 = v2 - v0;
+                RowVector3d e03 = v3 - v0;
+        	    double volume = (e01).dot( (e02).cross(e03) );
+        	    currValue = volume - refValue;
 
             }
 

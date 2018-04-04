@@ -1000,7 +1000,9 @@ public:
 				VectorXi globIndices(12);
 				VectorXd globInvMasses(12);
 				for(int i = 0; i < 4; i++) {
+					//We need the global indices, so we take the globalOffset fot this mesh and add the xyz indices of the tet vertex
 					globIndices.segment(3*i, 3) << meshes.at(m).globalOffset + 3 * meshes.at(m).T(t, i), meshes.at(m).globalOffset + 3 * meshes.at(m).T(t, i) + 1, meshes.at(m).globalOffset + 3 * meshes.at(m).T(t, i) + 2;
+					//For the invmasses, we simply access the invMasses in the mesh and add it 3 times for the xyz?
 					globInvMasses.segment(3 * i, 3) << meshes.at(m).invMasses(meshes.at(m).T(t, i) ), meshes.at(m).invMasses(meshes.at(m).T(t, i) ), meshes.at(m).invMasses(meshes.at(m).T(t, i) );
 				}
 				volumeConstraints.push_back(Constraint(VOLUME, EQUALITY, globIndices, globInvMasses, MatrixXd::Zero(1, 1), meshes.at(m).tetVolumes(t), 0. ));
