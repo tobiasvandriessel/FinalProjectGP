@@ -35,6 +35,9 @@ public:
 	void updateValueGradient(const VectorXd& currVars) {
 		switch (constraintType) {
 
+            case VOLUME: {
+
+            }
 
 		case MAX: {
 			RowVector3d v1(currVars(0), currVars(1), currVars(2));
