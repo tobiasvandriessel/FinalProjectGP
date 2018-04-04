@@ -842,6 +842,9 @@ public:
 		//barrier constraints
 		activeConstraints.insert(activeConstraints.end(), barrierConstraints.begin(), barrierConstraints.end());
 
+		//volume constraints
+		activeConstraints.insert(activeConstraints.end(), volumeConstraints.begin(), volumeConstraints.end());
+
 		//collision constraints
 		for (int i = 0; i<meshes.size(); i++)
 			for (int j = i + 1; j<meshes.size(); j++)
@@ -985,7 +988,12 @@ public:
 		for(int m = 0; m < meshes.size(); m++) {
 			for(int t = 0; t < meshes.at(m).T.rows(); t++){
 				VectorXi globIndices(4);
-				volumeConstraints.push_back(Constraint(VOLUME, EQUALITY, ))
+				VectorXd globInvMasses(4);
+				for(int i = 0; i < 4; i++) {
+					globIndices(i) = meshes.at(m).T(t, i);
+					globInvMasses(i) = globalInvMasses(globIndices(i) );
+				}
+				volumeConstraints.push_back(Constraint(VOLUME, EQUALITY, globIndices, globInvMasses, MatrixXd::Zero(1, 1), meshes.at(m).tetVolumes(t), 0. ));
 			}
 		}
 	}
