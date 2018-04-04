@@ -31,7 +31,7 @@ int currVertex=-1;
 
 int distanceVersion = 0; //0 = DISTANCE, 1 = EXTENSION, 2 = COMPRESSION
 
-float Ks = 175000, Kd = 2000;
+float Ks = 300000, Kd = 4000;
 
 Scene scene;
 
@@ -261,6 +261,8 @@ int main(int argc, char *argv[])
   scene.loadScene(std::string(argv[1]),std::string(argv[2]),std::string(argv[3]), F, EConst);
   scene.initScene(timeStep, 0.02, 0.02, V);
   scene.setPlatformBarriers(platTriV, CRCoeff);
+
+  //Probably do the volume constraint here
   
   //cout<<"F: "<<F<<endl;
   //cout<<"platV: "<<platV<<endl;

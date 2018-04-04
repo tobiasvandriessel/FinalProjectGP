@@ -467,6 +467,13 @@ public:
         }
 
         for(int t = 0; t < T.rows(); t++){
+//			Vector3d e01 = origPositions.segment(3 * T(t, 1), 3) - origPositions.segment(3 * T(t, 0), 3);
+//			Vector3d e02 = origPositions.segment(3 * T(t, 2), 3) - origPositions.segment(3 * T(t, 0), 3);
+//			Vector3d e03 = origPositions.segment(3 * T(t, 3), 3) - origPositions.segment(3 * T(t, 0), 3);
+//        	double volume = (e01).dot( (e02).cross(e03) );
+//        	cout << "volume:" << volume <<", length: " << e01.norm() << endl;
+
+
 
             for(int i = 0; i < 4; i++){
                 auto ret = NeigbouringIndices.find(T(t, i));
@@ -706,6 +713,7 @@ public:
 
 	vector<Constraint> userConstraints;   //provided from the scene
 	vector<Constraint> barrierConstraints;  //provided by the platform
+	vector<Constraint> volumeConstraints; 	//provided by the tet volumes
 
 											//updates from global values back into mesh values
 	void global2Mesh() {
@@ -971,6 +979,15 @@ public:
 			barrierConstraints.push_back(Constraint(BARRIER, INEQUALITY, coordIndices, constraintInvMasses, MatrixXd::Zero(1, 1), maxPlatform(1), CRCoeff));
 		}
 
+	}
+
+	void setVolumeConstraints(){
+		for(int m = 0; m < meshes.size(); m++) {
+			for(int t = 0; t < meshes.at(m).T.rows(); t++){
+				VectorXi globIndices(4);
+				volumeConstraints.push_back(Constraint(VOLUME, EQUALITY, ))
+			}
+		}
 	}
 
 
