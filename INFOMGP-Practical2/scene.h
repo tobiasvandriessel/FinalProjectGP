@@ -682,7 +682,7 @@ public:
                 double magnXij = (Xj - Xi).norm(), magnLij = (Lj - Li).norm();
                 RowVector3d Xij = Xj - Xi, Vij = Vj - Vi;
 
-
+				Kd = (2.0) * sqrt(Ks *(mi + mj)) / (Lj - Li).norm();
                 result += Ks * (magnXij - magnLij) * ((Xj - Xi) / magnXij);
                 result += Kd * (Vij.dot(Xij.transpose())) / (Xij.dot(Xij.transpose())) * Xij;
 
