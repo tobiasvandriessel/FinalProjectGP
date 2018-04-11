@@ -1063,7 +1063,7 @@ public:
 
 	}
 
-	void setVolumeConstraints(){
+	void setVolumeConstraints() {
 
 //		VectorXi globalCollisionIndices(24);
 //		VectorXd globalInvMasses(24);
@@ -1074,17 +1074,51 @@ public:
 //			globalInvMasses.segment(12 + 3 * t, 3) << m.invMasses(m.T(m.boundTets(j), t)), m.invMasses(m.T(m.boundTets(j), t)), m.invMasses(m.T(m.boundTets(j), t));
 //		}
 
-		for(int m = 0; m < meshes.size(); m++) {
-			for(int t = 0; t < meshes.at(m).T.rows(); t++){
-				VectorXi globIndices(12);
-				VectorXd globInvMasses(12);
-				for(int i = 0; i < 4; i++) {
-					//We need the global indices, so we take the globalOffset fot this mesh and add the xyz indices of the tet vertex
-					globIndices.segment(3*i, 3) << meshes.at(m).globalOffset + 3 * meshes.at(m).T(t, i), meshes.at(m).globalOffset + 3 * meshes.at(m).T(t, i) + 1, meshes.at(m).globalOffset + 3 * meshes.at(m).T(t, i) + 2;
-					//For the invmasses, we simply access the invMasses in the mesh and add it 3 times for the xyz?
-					globInvMasses.segment(3 * i, 3) << meshes.at(m).invMasses(meshes.at(m).T(t, i) ), meshes.at(m).invMasses(meshes.at(m).T(t, i) ), meshes.at(m).invMasses(meshes.at(m).T(t, i) );
+//		for(int m = 0; m < meshes.size(); m++) {
+//			for(int t = 0; t < meshes.at(m).T.rows(); t++){
+//				VectorXi globIndices(12);
+//				VectorXd globInvMasses(12);
+//				for(int i = 0; i < 4; i++) {
+//					//We need the global indices, so we take the globalOffset fot this mesh and add the xyz indices of the tet vertex
+//					globIndices.segment(3*i, 3) << meshes.at(m).globalOffset + 3 * meshes.at(m).T(t, i), meshes.at(m).globalOffset + 3 * meshes.at(m).T(t, i) + 1, meshes.at(m).globalOffset + 3 * meshes.at(m).T(t, i) + 2;
+//					//For the invmasses, we simply access the invMasses in the mesh and add it 3 times for the xyz?
+//					globInvMasses.segment(3 * i, 3) << meshes.at(m).invMasses(meshes.at(m).T(t, i) ), meshes.at(m).invMasses(meshes.at(m).T(t, i) ), meshes.at(m).invMasses(meshes.at(m).T(t, i) );
+//				}
+//				volumeConstraints.push_back(Constraint(VOLUME, EQUALITY, globIndices, globInvMasses, MatrixXd::Zero(1, 1), meshes.at(m).tetVolumes(t), 0. ));
+//			}
+//		}
+
+		bool isHandled[globalPositions.size()/3] = { 0 };
+		for (int m = 0; m < meshes.size(); m++) {
+			for (int i = 0; i < meshes.at(m).origPositions.size() / 3; i++) {
+				auto ret = meshes.at(m).NeigbouringIndices.find(i);
+				if(ret == meshes.at(m).NeigbouringIndices.end())
+					cout << "Couldn't find the index in NeighbouringIndices: " << i << endl;
+
+				for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter) {
+					int j = *iter;
+
+					if(!isHandled[meshes.at(m).globalOffset + j]){
+						//Do the constraint here
+						Vector3d diff = meshes.at(m).origPositions.segment(j * 3, 3) - meshes.at(m).origPositions.segment(i * 3, 3);
+						double restLength = sqrt(diff.dot(diff));
+						double refValue = (1.0 + 0.1) * restLength;
+
+						VectorXd globIndices(6);
+						VectorXd globInvMasses(6);
+						globIndices.segment(0, 3) << meshes.at(m).globalOffset + 3 * i, meshes.at(m).globalOffset + 3 * i + 1, meshes.at(m).globalOffset + 3 * i + 2;
+						globIndices.segment(3, 3) << meshes.at(m).globalOffset + 3 * j, meshes.at(m).globalOffset + 3 * j + 1, meshes.at(m).globalOffset + 3 * j + 2;
+
+						globInvMasses.segment(0, 3) << meshes.at(m).invMasses(i), meshes.at(m).invMasses(i), meshes.at(m).invMasses(i);
+						globInvMasses.segment(3, 3) << meshes.at(m).invMasses(j), meshes.at(m).invMasses(j), meshes.at(m).invMasses(j);
+						volumeConstraints.push_back(Constraint(OVERSTRETCH, INEQUALITY, globIndices, globInvMasses, MatrixXd::Zero(1, 1), refValue, 0.0));
+						volumeConstraints.push_back(Constraint(OVERCOMPR, INEQUALITY, globIndices, globInvMasses, MatrixXd::Zero(1, 1), refValue, 0.0));
+
+					}
+
 				}
-				volumeConstraints.push_back(Constraint(VOLUME, EQUALITY, globIndices, globInvMasses, MatrixXd::Zero(1, 1), meshes.at(m).tetVolumes(t), 0. ));
+
+				isHandled[meshes.at(m).globalOffset + i] = true;
 			}
 		}
 	}

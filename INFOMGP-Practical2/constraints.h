@@ -4,7 +4,7 @@
 using namespace Eigen;
 using namespace std;
 
-typedef enum ConstraintType { DISTANCE, COLLISION, BARRIER, MIN, MAX, VOLUME } ConstraintType;   //seems redundant, but you can expand it
+typedef enum ConstraintType { DISTANCE, COLLISION, BARRIER, MIN, MAX, VOLUME, OVERSTRETCH, OVERCOMPR} ConstraintType;   //seems redundant, but you can expand it
 typedef enum ConstraintEqualityType { EQUALITY, INEQUALITY } ConstraintEqualityType;
 
 //there is such constraints per two variables that are equal. That is, for every attached vertex there are three such constraints for (x,y,z);
