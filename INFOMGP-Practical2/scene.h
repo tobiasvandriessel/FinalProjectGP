@@ -605,6 +605,14 @@ public:
         currVelocities = (currPositions - prevPositions) / timeStep;
 	}
 
+	double calculateTetVolume(int tet) {
+
+        Vector3d e01 = origPositions.segment(3 * T(tet, 1), 3) - origPositions.segment(3 * T(tet, 0), 3);
+        Vector3d e02 = origPositions.segment(3 * T(tet, 2), 3) - origPositions.segment(3 * T(tet, 0), 3);
+        Vector3d e03 = origPositions.segment(3 * T(tet, 3), 3) - origPositions.segment(3 * T(tet, 0), 3);
+        return (1.0 / 6.0) * std::abs(e01.dot(e02.cross(e03))) ;
+    }
+
 	//Update the current position with the integrated velocity
 	void integratePosition(double timeStep, float Ks, float Kd) {
 		if (isFixed)
@@ -655,7 +663,13 @@ public:
 
                 if(retTet == ContainingTets.end())
                     cout << "Couldn't find the index in ContainingTets: " << i << " and " << j << endl;
+                for(auto iterTet = (*(retTet)).second.begin(); iterTet != (*(retTet)).second.end(); ++iterTet) {
+                    int tet = *iter;
 
+
+                }
+                 //tet =
+                //RowVector3d v0 =
                 //double Ks =
 
 

@@ -44,7 +44,7 @@ public:
                 RowVector3d e01 = v1 - v0;
 			    RowVector3d e02 = v2 - v0;
                 RowVector3d e03 = v3 - v0;
-        	    double volume = (1.0 / 6.0) * (e01).dot( (e02).cross(e03) );
+        	    double volume = (1.0 / 6.0) * std::abs((e01).dot( (e02).cross(e03) ));
         	    currValue = volume - refValue;
 
 				currGradient(0) = (1/6.0)* RowVector3d(-1,0,0).dot((e02).cross(e03))+(1/6.0)* RowVector3d(e01).dot((RowVector3d(-1,0,0)).cross(e03))+(1/6.0)RowVector3d(e01).dot((e02).cross(RowVector3d(-1, 0, 0)));
