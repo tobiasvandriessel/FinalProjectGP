@@ -290,7 +290,6 @@ public:
 		TODO
 		***************************/
 
-		cout << " entered gobal matrices" << endl;
 		std::vector<DoubleTriplet> massList;
 		//std::vector<DoubleTriplet> KeList;
 
@@ -432,7 +431,6 @@ public:
 
 		ASolver->compute(A);
 
-		cout << " Before doing MSolver stuff" << endl;
 
 		if(MSolver == NULL)
 			MSolver = new SimplicialLLT<SparseMatrix<double>>();
@@ -442,7 +440,6 @@ public:
 		I.setIdentity();
 		invM = MSolver->solve(I);
 
-		cout << " done all the solving " << endl;
 	}
 
 	//computes tet volumes, masses, and allocate voronoi areas and inverse masses to
