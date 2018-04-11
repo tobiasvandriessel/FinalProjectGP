@@ -40,6 +40,17 @@ public:
                 Vector3d v2(currVars(3), currVars(4), currVars(5));
 
                 currValue =  refValue - (v2 - v1).norm();
+
+                Vector3d gradient = 0.5 * currValue * (v2 - v1) / (v2 - v1).norm();
+
+
+                currGradient(0) = -gradient(0);
+                currGradient(1) = -gradient(1);
+                currGradient(2) = -gradient(2);
+
+                currGradient(3) = gradient(0);
+                currGradient(4) = gradient(1);
+                currGradient(5) = gradient(2);
             }
 
             case OVERCOMPR: {
@@ -47,6 +58,17 @@ public:
                 Vector3d v2(currVars(3), currVars(4), currVars(5));
 
                 currValue =  (v2 - v1).norm() - refValue;
+
+                Vector3d gradient = -0.5 * currValue * (v2 - v1) / (v2 - v1).norm();
+
+
+                currGradient(0) = -gradient(0);
+                currGradient(1) = -gradient(1);
+                currGradient(2) = -gradient(2);
+
+                currGradient(3) = gradient(0);
+                currGradient(4) = gradient(1);
+                currGradient(5) = gradient(2);
             }
 
             case VOLUME: {
@@ -111,12 +133,12 @@ public:
 			RowVector3d gradient = (v2 - v1) / (v2 - v1).norm();
 
 
-			currGradient(0) = -gradient(0);
-			currGradient(1) = -gradient(1);
-			currGradient(2) = -gradient(2);
+            currGradient(0) = -gradient(0);
+            currGradient(1) = -gradient(1);
+            currGradient(2) = -gradient(2);
 
-			currGradient(3) = gradient(0);
-			currGradient(4) = gradient(1);
+            currGradient(3) = gradient(0);
+            currGradient(4) = gradient(1);
 			currGradient(5) = gradient(2);
 
 

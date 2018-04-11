@@ -706,6 +706,7 @@ public:
         }
 
 
+        cout << "Fext size: " << Fext.size() << ", Rhs: " << ((invMasses * Fin.transpose()).transpose()).size() << endl;
 
         VectorXd temp = currPositions;
         currPositions = 2 * currPositions - prevPositions + (0.5 * (Fext + (invMasses * Fin.transpose()).transpose()) * timeStep * timeStep);
@@ -1090,7 +1091,9 @@ public:
 
 		bool isHandled[globalPositions.size()/3] = { 0 };
 		for (int m = 0; m < meshes.size(); m++) {
+			//cout << "In mesh " << m << endl;
 			for (int i = 0; i < meshes.at(m).origPositions.size() / 3; i++) {
+				//cout << "In vertex " << i << endl;
 				auto ret = meshes.at(m).NeigbouringIndices.find(i);
 				if(ret == meshes.at(m).NeigbouringIndices.end())
 					cout << "Couldn't find the index in NeighbouringIndices: " << i << endl;
@@ -1098,14 +1101,15 @@ public:
 				for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter) {
 					int j = *iter;
 
-					if(!isHandled[meshes.at(m).globalOffset + j]){
+					if(!isHandled[meshes.at(m).globalOffset / 3 + j]){
+						//cout << " going to set constraint between " << i << " and " << j << endl;
 						//Do the constraint here
 						double restLength = (meshes.at(m).origPositions.segment(j * 3, 3) - meshes.at(m).origPositions.segment(i * 3, 3)).norm();
 
 						double refValueStretch = (1.0 + 0.1) * restLength;
 						double refValueCompr = (1.0 - 0.1) * restLength;
 
-						VectorXd globIndices(6);
+						VectorXi globIndices(6);
 						VectorXd globInvMasses(6);
 						globIndices.segment(0, 3) << meshes.at(m).globalOffset + 3 * i, meshes.at(m).globalOffset + 3 * i + 1, meshes.at(m).globalOffset + 3 * i + 2;
 						globIndices.segment(3, 3) << meshes.at(m).globalOffset + 3 * j, meshes.at(m).globalOffset + 3 * j + 1, meshes.at(m).globalOffset + 3 * j + 2;
@@ -1119,9 +1123,12 @@ public:
 
 				}
 
-				isHandled[meshes.at(m).globalOffset + i] = true;
+				isHandled[meshes.at(m).globalOffset/3 + i] = true;
+				//cout << " handled vertex " << meshes.at(m).globalOffset / 3 << " + " << i << " = " << meshes.at(m).globalOffset / 3 + i << endl;
 			}
 		}
+
+		cout << "Finished Volume Constraints " << endl;
 	}
 
 
