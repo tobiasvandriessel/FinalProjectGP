@@ -49,7 +49,7 @@ public:
 
 	std::map<int, std::set<int>> NeigbouringIndices;
 	std::map<std::tuple<int,int>, std::set<int>> ContainingTets;
-	std::map<std::tuple<int,int>, double> edgeKs;
+	std::map<int, double> edgeLength;
 
 	typedef Eigen::Triplet<double> DoubleTriplet;
 	VectorXi boundTets;  //just the boundary tets, for collision
@@ -688,8 +688,14 @@ public:
                 for(auto iterTet = (*(retTet)).second.begin(); iterTet != (*(retTet)).second.end(); ++iterTet) {
 //                	cout << "Tet addition" << endl;
                     int tet = *iter;
-                    double volume = calculateTetVolume(tet);
-                    sumEdgeLength += pow(((12.0 * invSqrtTwo) * volume), (1.0/3.0));
+                    double length;
+
+                    auto retLength = edgeLength.find(tet);
+                    if(retLength == edgeLength.end())
+                    	length = pow(((12.0 * invSqrtTwo) * calculateTetVolume(tet)), (1.0/3.0));
+                    else
+                    	length = (*(retLength)).second;
+                    sumEdgeLength += length;
                 }
 //                cout << "Ks calculation" << endl;
                 double newKs = 2.0 * (1.0 / invSqrtTwo) * 0.04 * youngModulus;
@@ -718,6 +724,8 @@ public:
 
 //            cout << "result: " << result << endl;
         }
+
+        edgeLength.clear();
 
         //M.cwiseInverse()
 
