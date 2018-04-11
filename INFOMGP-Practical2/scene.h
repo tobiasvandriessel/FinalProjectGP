@@ -41,6 +41,7 @@ public:
 
 	MatrixXi T;                 //|T|x4 tetrahdra
 	VectorXd invMasses;         //|V|x1 inverse masses of vertices, computed in the beginning as 1.0/(density * vertex voronoi area)
+	VectorXd invMassesSized;	//|V|x3 inverse mass of vertices, with same mass repeated 3 times
 	VectorXd voronoiVolumes;    //|V|x1 the voronoi volume of vertices
 	VectorXd tetVolumes;        //|T|x1 tetrahedra volumes
 	int globalOffset;           //the global index offset of the of opositions/velocities/impulses from the beginning of the global coordinates array in the containing scene class
@@ -55,11 +56,11 @@ public:
 
 	double youngModulus, poissonRatio, density, alpha, beta;
 
-	SparseMatrix<double> A, K, M, D;   //The soft-body matrices
+	SparseMatrix<double> A, K, M, D, invM;   //The soft-body matrices
 
-	SimplicialLLT<SparseMatrix<double>>* ASolver;   //the solver for the left-hand side matrix constructed for FEM
+	SimplicialLLT<SparseMatrix<double>> *ASolver, *MSolver;   //the solver for the left-hand side matrix constructed for FEM
 
-	~Mesh() { if (ASolver != NULL) delete ASolver; }
+	~Mesh() { if (ASolver != NULL) delete ASolver; if (MSolver != NULL) delete MSolver; }
 
 	//Quick-reject checking collision between mesh bounding boxes.
 	bool isBoxCollide(const Mesh& m2) {
@@ -289,12 +290,13 @@ public:
 		TODO
 		***************************/
 
-
+		cout << " entered gobal matrices" << endl;
 		std::vector<DoubleTriplet> massList;
 		//std::vector<DoubleTriplet> KeList;
 
 		K = Eigen::SparseMatrix<double>(origPositions.size(), origPositions.size());
 		M = Eigen::SparseMatrix<double>(origPositions.size(), origPositions.size());
+		invM = Eigen::SparseMatrix<double>(origPositions.size(), origPositions.size());
 		Eigen::SparseMatrix<double> Ktemp = Eigen::SparseMatrix<double>(12 * T.rows(), 12 * T.rows());
 		D = Eigen::SparseMatrix<double>(origPositions.size(), origPositions.size());
 
@@ -430,6 +432,17 @@ public:
 
 		ASolver->compute(A);
 
+		cout << " Before doing MSolver stuff" << endl;
+
+		if(MSolver == NULL)
+			MSolver = new SimplicialLLT<SparseMatrix<double>>();
+		MSolver->compute(M);
+
+		SparseMatrix<double> I(origPositions.size(), origPositions.size());
+		I.setIdentity();
+		invM = MSolver->solve(I);
+
+		cout << " done all the solving " << endl;
 	}
 
 	//computes tet volumes, masses, and allocate voronoi areas and inverse masses to
@@ -439,6 +452,7 @@ public:
 		voronoiVolumes.conservativeResize(origPositions.size() / 3);
 		voronoiVolumes.setZero();
 		invMasses.conservativeResize(origPositions.size() / 3);
+		invMassesSized.conservativeResize(origPositions.size());
 		Vector3d COM; COM.setZero();
 		for (int i = 0; i<T.rows(); i++) {
 			Vector3d e01 = origPositions.segment(3 * T(i, 1), 3) - origPositions.segment(3 * T(i, 0), 3);
@@ -455,6 +469,9 @@ public:
 		COM.array() /= tetVolumes.sum();
 		for (int i = 0; i<origPositions.size() / 3; i++)
 			invMasses(i) = 1.0 / (voronoiVolumes(i)*density);
+
+		for(int i = 0; i<origPositions.size() / 3; i++)
+			invMassesSized.segment(3 * i, 3) << invMasses(i), invMasses(i), invMasses(i);
 
 
 		//
@@ -705,11 +722,22 @@ public:
 //            cout << "result: " << result << endl;
         }
 
+        //M.cwiseInverse()
 
-        cout << "Fext size: " << Fext.size() << ", Rhs: " << ((invMasses * Fin.transpose()).transpose()).size() << endl;
+//        RowVectorXd Rhs = ((invMassesSized * Fin.transpose()).transpose());
+//
+//        cout << "Fext size: " << Fext.rows() << ", " << Fext.cols() << ", Rhs: " << Rhs.rows() << ", " << Rhs.cols() << endl;
+//        cout << "invMasses: " << invMassesSized.rows() << ", " << invMassesSized.cols() << ", Fin: " << Fin.rows() << endl;
+//        cout << "Fin: " << Fin.rows() << ", " << Fin.cols() << endl;
+//
+//        for(int i = 0; i < 5; i++)
+//        	for(int j = 0; j < 5; j++)
+//				cout << "elem (" << i << "," << j << "): " << Rhs(i, j);
 
         VectorXd temp = currPositions;
-        currPositions = 2 * currPositions - prevPositions + (0.5 * (Fext + (invMasses * Fin.transpose()).transpose()) * timeStep * timeStep);
+        VectorXd tempDense = VectorXd(invM * Fin);
+        VectorXd tempRight = (0.5 * (Fext + tempDense) * timeStep * timeStep);
+        currPositions = 2 * currPositions - prevPositions + tempRight;
         prevPositions = temp;
 
 //		currPositions += currVelocities * timeStep;
@@ -774,6 +802,7 @@ public:
 			boundTets(i) = boundTList[i];
 
 		ASolver = NULL;
+		MSolver = NULL;
 	}
 
 };
