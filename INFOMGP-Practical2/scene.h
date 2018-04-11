@@ -48,6 +48,7 @@ public:
 
 	std::map<int, std::set<int>> NeigbouringIndices;
 	std::map<std::tuple<int,int>, std::set<int>> ContainingTets;
+	std::map<std::tuple<int,int>, double> edgeKs;
 
 	typedef Eigen::Triplet<double> DoubleTriplet;
 	VectorXi boundTets;  //just the boundary tets, for collision
@@ -607,9 +608,9 @@ public:
 
 	double calculateTetVolume(int tet) {
 
-        Vector3d e01 = origPositions.segment(3 * T(tet, 1), 3) - origPositions.segment(3 * T(tet, 0), 3);
-        Vector3d e02 = origPositions.segment(3 * T(tet, 2), 3) - origPositions.segment(3 * T(tet, 0), 3);
-        Vector3d e03 = origPositions.segment(3 * T(tet, 3), 3) - origPositions.segment(3 * T(tet, 0), 3);
+        Vector3d e01 = currPositions.segment(3 * T(tet, 1), 3) - currPositions.segment(3 * T(tet, 0), 3);
+        Vector3d e02 = currPositions.segment(3 * T(tet, 2), 3) - currPositions.segment(3 * T(tet, 0), 3);
+        Vector3d e03 = currPositions.segment(3 * T(tet, 3), 3) - currPositions.segment(3 * T(tet, 0), 3);
         return (1.0 / 6.0) * std::abs(e01.dot(e02.cross(e03))) ;
     }
 
@@ -629,6 +630,7 @@ public:
 
         double mu = youngModulus / (2.0 * (1 + poissonRatio));
         double lambda = (poissonRatio * youngModulus) / ((1 + poissonRatio) * (1 - 2*poissonRatio));
+        double invSqrtTwo = 1.0 / sqrt(2.0);
         double k = 4 * sqrt(3) * mu / 3;
         //double k = lambda + (2.0/3.0) * mu;
 
@@ -638,7 +640,7 @@ public:
             if(ret == NeigbouringIndices.end())
                 cout << "Couldn't find the index in NeighbouringIndices: " << i << endl;
 
-
+			double Mi = 1.0 / invMasses(i);
 
             RowVector3d Xi, Li, Vi;
             Xi << currPositions.segment(3 * i, 3).transpose();
@@ -652,7 +654,9 @@ public:
             for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter){
                 int j = *iter;
 
-                std::tuple<int,int> tup;
+				double Mj = 1.0 / invMasses(j);
+
+				std::tuple<int,int> tup;
                 if(i < j) {
                 	//cout << i << " < "  << j << endl;
                     tup = std::make_tuple(i, j);
@@ -665,14 +669,16 @@ public:
 
                 if(retTet == ContainingTets.end())
                     cout << "Couldn't find the index in ContainingTets in integratePosition: " << i << " and " << j << endl;
+
+                double sumEdgeLength = 0.0;
                 for(auto iterTet = (*(retTet)).second.begin(); iterTet != (*(retTet)).second.end(); ++iterTet) {
+//                	cout << "Tet addition" << endl;
                     int tet = *iter;
-
-
+                    double volume = calculateTetVolume(tet);
+                    sumEdgeLength += pow(((12.0 * invSqrtTwo) * volume), (1.0/3.0));
                 }
-//                 tet =
-//                RowVector3d v0 =
-//                double Ks =
+//                cout << "Ks calculation" << endl;
+                double newKs = 2.0 * (1.0 / invSqrtTwo) * 0.04 * youngModulus;
 
 
                 RowVector3d Xj, Lj, Vj;
@@ -681,12 +687,14 @@ public:
                 Lj = origPositions.segment(3 * j, 3).transpose();
                 Vj = currVelocities.segment(3 * j, 3).transpose();
 
+
+
                 double magnXij = (Xj - Xi).norm(), magnLij = (Lj - Li).norm();
                 RowVector3d Xij = Xj - Xi, Vij = Vj - Vi;
 
-				//Kd = (2.0) * sqrt(Ks *(mi + mj)) / (Lj - Li).norm();
-                result += Ks * (magnXij - magnLij) * ((Xj - Xi) / magnXij);
-                result += Kd * (Vij.dot(Xij.transpose())) / (Xij.dot(Xij.transpose())) * Xij;
+				double newKd = (2.0) * sqrt(newKs *(Mi + Mj)) / (Lj - Li).norm();
+                result += newKs * (magnXij - magnLij) * ((Xj - Xi) / magnXij);
+                result += newKd * (Vij.dot(Xij.transpose())) / (Xij.dot(Xij.transpose())) * Xij;
 
             }
 
