@@ -472,7 +472,7 @@ public:
                 for(int j = 0; j < 4; j++) {
                     if( i == j )
                         continue;
-                    if(i < j) {
+                    if(T(t, i) < T(t,j)) {
                         std::pair<std::tuple<int, int>, std::set<int>> temp(std::make_tuple(T(t, i), T(t, j)), std::set<int>());
                         ContainingTets.insert(temp);
                     }
@@ -508,7 +508,7 @@ public:
                     ((*(ret)).second).insert(T(t, j));
 
                     std::tuple<int,int> tup;
-                    if(i < j) {
+                    if(T(t, i) < T(t, j)) {
                         tup = std::make_tuple(T(t, i), T(t, j));
                     } else {
                         tup = std::make_tuple(T(t, j), T(t, i));
@@ -652,25 +652,27 @@ public:
             for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter){
                 int j = *iter;
 
-//                std::tuple<int,int> tup;
-//                if(i < j) {
-//                    tup = std::make_tuple(i, j);
-//                } else {
-//                    tup = std::make_tuple(j, i);
-//                }
-//
-//                auto retTet = ContainingTets.find(tup);
-//
-//                if(retTet == ContainingTets.end())
-//                    cout << "Couldn't find the index in ContainingTets in integratePosition: " << i << " and " << j << endl;
-//                for(auto iterTet = (*(retTet)).second.begin(); iterTet != (*(retTet)).second.end(); ++iterTet) {
-//                    int tet = *iter;
-//
-//
-//                }
-                 //tet =
-                //RowVector3d v0 =
-                //double Ks =
+                std::tuple<int,int> tup;
+                if(i < j) {
+                	//cout << i << " < "  << j << endl;
+                    tup = std::make_tuple(i, j);
+                } else {
+					//cout << j << " < " << i << endl;
+					tup = std::make_tuple(j, i);
+                }
+
+                auto retTet = ContainingTets.find(tup);
+
+                if(retTet == ContainingTets.end())
+                    cout << "Couldn't find the index in ContainingTets in integratePosition: " << i << " and " << j << endl;
+                for(auto iterTet = (*(retTet)).second.begin(); iterTet != (*(retTet)).second.end(); ++iterTet) {
+                    int tet = *iter;
+
+
+                }
+//                 tet =
+//                RowVector3d v0 =
+//                double Ks =
 
 
                 RowVector3d Xj, Lj, Vj;
