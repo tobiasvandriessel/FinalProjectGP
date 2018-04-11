@@ -47,6 +47,7 @@ public:
 	double GRAVITY = 9.81f;
 
 	std::map<int, std::set<int>> NeigbouringIndices;
+	std::map<std::tuple<int,int>, std::set<int>> ContainingTets;
 
 	typedef Eigen::Triplet<double> DoubleTriplet;
 	VectorXi boundTets;  //just the boundary tets, for collision
@@ -466,6 +467,23 @@ public:
             NeigbouringIndices.insert(temp);
         }
 
+        for(int t = 0; t < T.rows(); t++) {
+            for(int i = 0; i < 4; i++) {
+                for(int j = 0; j < 4; j++) {
+                    if( i == j )
+                        continue;
+                    if(i < j) {
+                        std::pair<std::tuple<int, int>, std::set<int>> temp(std::make_tuple(T(t, i), T(t, j)), std::set<int>());
+                        ContainingTets.insert(temp);
+                    }
+                    else {
+                        std::pair<std::tuple<int, int>, std::set<int>> temp(std::make_tuple(T(t, j), T(t, i)), std::set<int>());
+                        ContainingTets.insert(temp);
+                    }
+                }
+            }
+        }
+
         for(int t = 0; t < T.rows(); t++){
 //			Vector3d e01 = origPositions.segment(3 * T(t, 1), 3) - origPositions.segment(3 * T(t, 0), 3);
 //			Vector3d e02 = origPositions.segment(3 * T(t, 2), 3) - origPositions.segment(3 * T(t, 0), 3);
@@ -477,13 +495,33 @@ public:
 
             for(int i = 0; i < 4; i++){
                 auto ret = NeigbouringIndices.find(T(t, i));
+
                 if(ret == NeigbouringIndices.end())
                     cout << "Couldn't find the index in NeighbouringIndices: " << T(t,i) << endl;
 
+
+
+                //Insert all the other indices in this Tet, not equal to i
                 for(int j = 0; j < 4; j++) {
                     if( i == j )
                         continue;
                     ((*(ret)).second).insert(T(t, j));
+
+                    std::tuple<int,int> tup;
+                    if(i < j) {
+                        tup = std::make_tuple(T(t, i), T(t, j));
+                    } else {
+                        tup = std::make_tuple(T(t, i), T(t, j));
+                    }
+
+                    auto retTet = ContainingTets.find(tup);
+
+                    if(retTet == ContainingTets.end())
+                        cout << "Couldn't find the index in ContainingTets: " << T(t,i) << " and " << T(t,j) << endl;
+
+                    //Insert the Tet index for this vertex
+                    ((*(retTet)).second).insert(t);
+
                 }
 
             }
@@ -592,6 +630,8 @@ public:
             if(ret == NeigbouringIndices.end())
                 cout << "Couldn't find the index in NeighbouringIndices: " << i << endl;
 
+
+
             RowVector3d Xi, Li, Vi;
             Xi << currPositions.segment(3 * i, 3).transpose();
             Li << origPositions.segment(3 * i, 3).transpose();
@@ -603,6 +643,21 @@ public:
 
             for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter){
                 int j = *iter;
+
+                std::tuple<int,int> tup;
+                if(i < j) {
+                    tup = std::make_tuple(i, j);
+                } else {
+                    tup = std::make_tuple(j, i);
+                }
+
+                auto retTet = ContainingTets.find(tup);
+
+                if(retTet == ContainingTets.end())
+                    cout << "Couldn't find the index in ContainingTets: " << i << " and " << j << endl;
+
+                //double Ks =
+
 
                 RowVector3d Xj, Lj, Vj;
                 Xj << currPositions.segment(3 * j, 3).transpose();

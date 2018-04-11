@@ -263,6 +263,7 @@ int main(int argc, char *argv[])
   scene.setPlatformBarriers(platTriV, CRCoeff);
 
   //Probably do the volume constraint here
+    scene.setVolumeConstraints();
   
   //cout<<"F: "<<F<<endl;
   //cout<<"platV: "<<platV<<endl;
