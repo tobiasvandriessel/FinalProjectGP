@@ -511,13 +511,13 @@ public:
                     if(i < j) {
                         tup = std::make_tuple(T(t, i), T(t, j));
                     } else {
-                        tup = std::make_tuple(T(t, i), T(t, j));
+                        tup = std::make_tuple(T(t, j), T(t, i));
                     }
 
                     auto retTet = ContainingTets.find(tup);
 
                     if(retTet == ContainingTets.end())
-                        cout << "Couldn't find the index in ContainingTets: " << T(t,i) << " and " << T(t,j) << endl;
+                        cout << "Couldn't find the index in ContainingTets in initalize: " << T(t,i) << " and " << T(t,j) << endl;
 
                     //Insert the Tet index for this vertex
                     ((*(retTet)).second).insert(t);
@@ -652,22 +652,22 @@ public:
             for(auto iter = (*(ret)).second.begin(); iter != (*(ret)).second.end(); ++iter){
                 int j = *iter;
 
-                std::tuple<int,int> tup;
-                if(i < j) {
-                    tup = std::make_tuple(i, j);
-                } else {
-                    tup = std::make_tuple(j, i);
-                }
-
-                auto retTet = ContainingTets.find(tup);
-
-                if(retTet == ContainingTets.end())
-                    cout << "Couldn't find the index in ContainingTets: " << i << " and " << j << endl;
-                for(auto iterTet = (*(retTet)).second.begin(); iterTet != (*(retTet)).second.end(); ++iterTet) {
-                    int tet = *iter;
-
-
-                }
+//                std::tuple<int,int> tup;
+//                if(i < j) {
+//                    tup = std::make_tuple(i, j);
+//                } else {
+//                    tup = std::make_tuple(j, i);
+//                }
+//
+//                auto retTet = ContainingTets.find(tup);
+//
+//                if(retTet == ContainingTets.end())
+//                    cout << "Couldn't find the index in ContainingTets in integratePosition: " << i << " and " << j << endl;
+//                for(auto iterTet = (*(retTet)).second.begin(); iterTet != (*(retTet)).second.end(); ++iterTet) {
+//                    int tet = *iter;
+//
+//
+//                }
                  //tet =
                 //RowVector3d v0 =
                 //double Ks =
@@ -682,7 +682,7 @@ public:
                 double magnXij = (Xj - Xi).norm(), magnLij = (Lj - Li).norm();
                 RowVector3d Xij = Xj - Xi, Vij = Vj - Vi;
 
-				Kd = (2.0) * sqrt(Ks *(mi + mj)) / (Lj - Li).norm();
+				//Kd = (2.0) * sqrt(Ks *(mi + mj)) / (Lj - Li).norm();
                 result += Ks * (magnXij - magnLij) * ((Xj - Xi) / magnXij);
                 result += Kd * (Vij.dot(Xij.transpose())) / (Xij.dot(Xij.transpose())) * Xij;
 
