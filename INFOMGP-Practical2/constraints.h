@@ -51,6 +51,7 @@ public:
                 currGradient(3) = gradient(0);
                 currGradient(4) = gradient(1);
                 currGradient(5) = gradient(2);
+                break;
             }
 
             case OVERCOMPR: {
@@ -69,6 +70,7 @@ public:
                 currGradient(3) = gradient(0);
                 currGradient(4) = gradient(1);
                 currGradient(5) = gradient(2);
+                break;
             }
 
             case VOLUME: {
@@ -95,9 +97,7 @@ public:
 				currGradient(9) = (1 / 6.0)* (e01).dot((e02).cross(RowVector3d(1, 0, 0)));
 				currGradient(10) = (1 / 6.0)* (e01).dot((e02).cross(RowVector3d(0, 1, 0)));
 				currGradient(11) = (1 / 6.0)* (e01).dot((e02).cross(RowVector3d(0, 0, 1)));
-
-
-
+				break;
             }
 
 		case MAX: {
