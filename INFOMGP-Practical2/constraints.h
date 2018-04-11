@@ -35,6 +35,20 @@ public:
 	void updateValueGradient(const VectorXd& currVars) {
 		switch (constraintType) {
 
+            case OVERSTRETCH: {
+                Vector3d v1(currVars(0), currVars(1), currVars(2));
+                Vector3d v2(currVars(3), currVars(4), currVars(5));
+
+                currValue =  refValue - (v2 - v1).norm();
+            }
+
+            case OVERCOMPR: {
+                Vector3d v1(currVars(0), currVars(1), currVars(2));
+                Vector3d v2(currVars(3), currVars(4), currVars(5));
+
+                currValue =  (v2 - v1).norm() - refValue;
+            }
+
             case VOLUME: {
                 RowVector3d v0(currVars(0), currVars(1), currVars(2));
                 RowVector3d v1(currVars(3), currVars(4), currVars(5));

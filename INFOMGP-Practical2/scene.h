@@ -1100,9 +1100,10 @@ public:
 
 					if(!isHandled[meshes.at(m).globalOffset + j]){
 						//Do the constraint here
-						Vector3d diff = meshes.at(m).origPositions.segment(j * 3, 3) - meshes.at(m).origPositions.segment(i * 3, 3);
-						double restLength = sqrt(diff.dot(diff));
-						double refValue = (1.0 + 0.1) * restLength;
+						double restLength = (meshes.at(m).origPositions.segment(j * 3, 3) - meshes.at(m).origPositions.segment(i * 3, 3)).norm();
+
+						double refValueStretch = (1.0 + 0.1) * restLength;
+						double refValueCompr = (1.0 - 0.1) * restLength;
 
 						VectorXd globIndices(6);
 						VectorXd globInvMasses(6);
@@ -1111,8 +1112,8 @@ public:
 
 						globInvMasses.segment(0, 3) << meshes.at(m).invMasses(i), meshes.at(m).invMasses(i), meshes.at(m).invMasses(i);
 						globInvMasses.segment(3, 3) << meshes.at(m).invMasses(j), meshes.at(m).invMasses(j), meshes.at(m).invMasses(j);
-						volumeConstraints.push_back(Constraint(OVERSTRETCH, INEQUALITY, globIndices, globInvMasses, MatrixXd::Zero(1, 1), refValue, 0.0));
-						volumeConstraints.push_back(Constraint(OVERCOMPR, INEQUALITY, globIndices, globInvMasses, MatrixXd::Zero(1, 1), refValue, 0.0));
+						volumeConstraints.push_back(Constraint(OVERSTRETCH, INEQUALITY, globIndices, globInvMasses, MatrixXd::Zero(1, 1), refValueStretch, 0.0));
+						volumeConstraints.push_back(Constraint(OVERCOMPR, INEQUALITY, globIndices, globInvMasses, MatrixXd::Zero(1, 1), refValueCompr, 0.0));
 
 					}
 
