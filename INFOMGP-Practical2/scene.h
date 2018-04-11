@@ -732,9 +732,7 @@ public:
 //				cout << "elem (" << i << "," << j << "): " << Rhs(i, j);
 
         VectorXd temp = currPositions;
-        VectorXd tempDense = VectorXd(invM * Fin);
-        VectorXd tempRight = (0.5 * (Fext + tempDense) * timeStep * timeStep);
-        currPositions = 2 * currPositions - prevPositions + tempRight;
+        currPositions = 2 * currPositions - prevPositions + (0.5 * (Fext + VectorXd(invM * Fin)) * timeStep * timeStep);
         prevPositions = temp;
 
 //		currPositions += currVelocities * timeStep;
