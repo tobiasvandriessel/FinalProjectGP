@@ -1,4 +1,4 @@
-Mass spring system and Soft Tissue
+**Mass spring system and Soft Tissue**
 
 See slides for more details.
 
