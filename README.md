@@ -3,9 +3,9 @@
 See slides for more details.
 See videos of the slides here:
 
-[libigl- Mass srping system soft tisue explotion](https://youtu.be/Yd_L4Kd0GjE).
+[libigl- Mass spring system soft tissue explosion](https://youtu.be/Yd_L4Kd0GjE).
 
-[libigl- Mass srping system soft tisue good](https://youtu.be/U-NebBkrkh8).
+[libigl- Mass spring system soft tissue good](https://youtu.be/U-NebBkrkh8).
 
 
 Below some images of the magnificent bunny bounce.
